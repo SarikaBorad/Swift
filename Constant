@@ -1,0 +1,149 @@
+// - - - - - - - - - - - - -
+// MARK:- 📍 Extension - Date
+// - - - - - - - - - - - - -
+
+extension Date {
+    
+    var startOfDay: Date {
+        return Calendar.current.startOfDay(for: self)
+    }
+    
+    var endOfDay: Date? {
+        var components = DateComponents()
+        components.day = 1
+        components.second = -1
+        return Calendar.current.date(byAdding: components, to: startOfDay)
+    }
+    
+    
+    
+    func GetWeekRange() -> (Date,Date) {
+        let cal = Calendar.current
+        
+        var comps = cal.dateComponents([.weekOfYear, .yearForWeekOfYear], from: self)
+        comps.weekday = 2 // Monday
+        let mondayInWeek = cal.date(from: comps)!
+        
+        return (mondayInWeek,mondayInWeek.GetDateFrom(day: 6,datecomponent: .day))
+    }
+    
+    func GetDateFrom(day : Int , datecomponent : Calendar.Component) -> Date {
+        
+         let newdate = NSCalendar.current.date(byAdding: datecomponent, value: day, to: self)
+        
+        return newdate!
+    }
+    
+    func getComponent(index : Int) -> String {
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEEE d MMMM yyyy Q"
+        let datestring = dateFormatter.string(from: self)
+        let dateary = datestring.components(separatedBy: " ")
+        return dateary[index]
+    }
+    
+    
+    func startOfMonth() -> Date {
+        return Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Calendar.current.startOfDay(for: self)))!
+    }
+    
+    func endOfMonth() -> Date {
+        return Calendar.current.date(byAdding: DateComponents(month: 1, day: -1), to: self.startOfMonth())!
+    }
+    
+    func startOfYear() -> Date {
+        return Calendar.current.date(from: Calendar.current.dateComponents([.year], from: Calendar.current.startOfDay(for: self)))!
+    }
+    
+    func endOfYear() -> Date {
+        return Calendar.current.date(byAdding: DateComponents(year: 1, day: -1), to: self.startOfYear())!
+    }
+    
+    
+    func combineDateWithTime(time: Date) -> Date {
+        let calendar = Calendar.current as NSCalendar
+        
+        let dateComponents = calendar.components([.year, .month, .day], from: self)
+        let timeComponents = calendar.components([.hour, .minute, .second], from: time as Date)
+        
+        var mergedComponments = DateComponents()
+        
+        mergedComponments.year = dateComponents.year!
+        mergedComponments.month = dateComponents.month!
+        mergedComponments.day = dateComponents.day!
+        mergedComponments.hour = timeComponents.hour!
+        mergedComponments.minute = timeComponents.minute!
+        mergedComponments.second = timeComponents.second!
+        
+        return calendar.date(from: mergedComponments)!
+    }
+    
+    var Timestamp: String {
+        
+        let timesp = self.timeIntervalSince1970
+        
+        let strNs = NSString(format: "%.f", timesp)
+        
+        return "\(strNs)"
+    }
+    
+    func dateToString(format:String)-> String {
+        
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.timeZone = TimeZone.current
+        dateFormatter.dateFormat = format
+        let dateString = dateFormatter.string(from: self)
+        
+        return dateString
+    }
+    
+    func yearsFrom(_ date:Date) -> Int{
+        return (Calendar.current as NSCalendar).components(.year, from: date, to: self, options: []).year!
+    }
+    func monthsFrom(_ date:Date) -> Int{
+        return (Calendar.current as NSCalendar).components(.month, from: date, to: self, options: []).month!
+    }
+    func weeksFrom(_ date:Date) -> Int{
+        return (Calendar.current as NSCalendar).components(.weekOfYear, from: date, to: self, options: []).weekOfYear!
+    }
+    func daysFrom(_ date:Date) -> Int{
+        return (Calendar.current as NSCalendar).components(.day, from: date, to: self, options: []).day!
+    }
+    func hoursFrom(_ date:Date) -> Int{
+        return (Calendar.current as NSCalendar).components(.hour, from: date, to: self, options: []).hour!
+    }
+    func minutesFrom(_ date:Date) -> Int{
+        return (Calendar.current as NSCalendar).components(.minute, from: date, to: self, options: []).minute!
+    }
+    func secondsFrom(_ date:Date) -> Int{
+        return (Calendar.current as NSCalendar).components(.second, from: date, to: self, options: []).second!
+    }
+    func offsetFrom(_ date:Date) -> String {
+        if yearsFrom(date)   > 0 { return "\(yearsFrom(date))year"   }
+        if monthsFrom(date)  > 0 { return "\(monthsFrom(date))month"  }
+        if weeksFrom(date)   > 0 { return "\(weeksFrom(date))week"   }
+        if daysFrom(date)    > 0 { return "\(daysFrom(date))day"    }
+        if hoursFrom(date)   > 0 { return "\(hoursFrom(date))hour"   }
+        if minutesFrom(date) > 0 { return "\(minutesFrom(date))min" }
+        if secondsFrom(date) > 0 { return "\(secondsFrom(date))second" }
+      
+        
+        return ""
+    }
+    
+    
+    func off_Nub_unit_setFrom(_ date:Date) -> (Int,String) {
+        if yearsFrom(date)   > 0 { return (yearsFrom(date), "year")   }
+        if monthsFrom(date)  > 0 { return (monthsFrom(date), "month")  }
+        if weeksFrom(date)   > 0 { return (weeksFrom(date), "week")   }
+        if daysFrom(date)    > 0 { return (daysFrom(date), "day")    }
+        if hoursFrom(date)   > 0 { return (hoursFrom(date), "hour")   }
+        if minutesFrom(date) > 0 { return (minutesFrom(date), "min") }
+        if secondsFrom(date) > 0 { return (secondsFrom(date), "second") }
+        
+        
+        return (0,"")
+    }
+}
