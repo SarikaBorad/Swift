@@ -1,0 +1,36 @@
+
+// - - - - - - - - - - - - - - - - - - 
+// MARK:- for hide or show tabel cell when tapping header view
+// - - - - - - - - - - - - - - - - - - 
+
+
+func  handleTap(sender: UITapGestureRecognizer) {
+        
+        print("Tapped")
+        let section = sender.view!.tag - 20
+        var indexPaths = [IndexPath]()
+        
+        if section == 0 {
+            
+             indexPaths = (0 ..< arrMyAdd.count).map { i in return IndexPath(item: i, section: section)  }
+        }else{
+            
+             indexPaths = (0 ..< arrCity[section - 1].area.count).map { i in return IndexPath(item: i, section: section)  }
+        }
+
+        hidden[section] = !hidden[section]
+
+        tbl_area.beginUpdates()
+        
+        if hidden[section] { //for hiding cell
+            
+            tbl_area.deleteRows(at: indexPaths, with: .fade)
+            
+        } else { // for showing cell
+            
+            tbl_area.insertRows(at: indexPaths, with: .fade)
+            
+        }
+        tbl_area.endUpdates()
+    
+    }
