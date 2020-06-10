@@ -61,7 +61,7 @@ extension Date {
     
     func endOfYear() -> Date {
         return Calendar.current.date(byAdding: DateComponents(year: 1, day: -1), to: self.startOfYear())!
-    }
+    }   
     
     
     func combineDateWithTime(time: Date) -> Date {
