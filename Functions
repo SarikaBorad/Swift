@@ -1,7 +1,7 @@
 
-// - - - - - - - - - - - - - - - - - - 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - -  
 // MARK:- for hide or show tabel cell when tapping header view
-// - - - - - - - - - - - - - - - - - - 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - -  
 
 
 func  handleTap(sender: UITapGestureRecognizer) {
@@ -34,3 +34,416 @@ func  handleTap(sender: UITapGestureRecognizer) {
         tbl_area.endUpdates()
     
     }
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - -  
+    // MARK:- Change status bar color
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - -  
+    
+    func statusBarColorChange(){
+
+        if #available(iOS 13.0, *) {
+
+                let statusBar = UIView(frame: UIApplication.shared.keyWindow?.windowScene?.statusBarManager?.statusBarFrame ?? CGRect.zero)
+                statusBar.backgroundColor = #colorLiteral(red: 0.9725490196, green: 0.337254902, blue: 0.3568627451, alpha: 1)
+                statusBar.tag = 100
+                UIApplication.shared.keyWindow?.addSubview(statusBar)
+
+        } else {
+
+                let statusBar = UIApplication.shared.value(forKeyPath: "statusBarWindow.statusBar") as? UIView
+                statusBar?.backgroundColor = #colorLiteral(red: 0.9725490196, green: 0.337254902, blue: 0.3568627451, alpha: 1)
+
+            }
+        
+    }
+    
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - -  
+    // MARK:- click logout  and got ot login 
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  - - - - - - - - - - - - - - - - - -  
+    
+    
+    let vc = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "LoginNavi") as! UINavigationController
+                        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+                        appDelegate.window?.rootViewController = vc
+                        
+        
+        
+        
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -                 
+    // MARK:- send push and reminder notification
+    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+    
+    // in app delegate
+    
+    import UserNotifications
+    import FirebaseMessaging
+    
+    // set class - MessagingDelegate, UNUserNotificationCenterDelegate
+    
+     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        
+
+        Messaging.messaging().delegate = self
+        
+        if #available(iOS 10.0, *) {
+            
+            UNUserNotificationCenter.current().delegate = self
+            let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]
+            
+            UNUserNotificationCenter.current().requestAuthorization(
+                options: authOptions,
+                completionHandler: { (granted, error) in
+                    
+                    if !granted {
+                    
+                        print("not allowed")
+                    }else
+                    {
+                        setReminder()  // reminder notification
+                    }
+
+            })
+        } else {
+            let settings: UIUserNotificationSettings =
+                UIUserNotificationSettings(types: [.alert, .badge, .sound], categories: nil)
+            application.registerUserNotificationSettings(settings)
+        }
+        application.registerForRemoteNotifications()
+        
+        application.applicationIconBadgeNumber = 0
+        
+   }
+    
+      func setReminder() {
+        
+        print("Yay!")
+        
+        let content = UNMutableNotificationContent()
+        content.title = "Order Alert"
+        content.body = "Place your Order Before 2:00 AM. if already added ignore Message"
+        content.sound = UNNotificationSound.default
+        content.categoryIdentifier = "notify-test"
+        
+        var dateComponents = DateComponents()
+        dateComponents.hour = 23
+        dateComponents.minute = 00
+        
+        //        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        
+        let request = UNNotificationRequest(identifier: "orderReminder", content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request)
+        
+        defaults.set(true, forKey: VHkey.daily_reminder)
+        
+    }     
+    
+     func messaging(_ messaging: Messaging, didReceive remoteMessage: MessagingRemoteMessage) {
+        
+        print(remoteMessage.appData)
+    }
+    
+    func messaging(_ messaging: Messaging, didRefreshRegistrationToken fcmToken: String) {
+        
+        print(fcmToken)
+    }
+    
+    func messaging(_ messaging: Messaging, didReceiveRegistrationToken fcmToken: String) {
+        
+        let token = Messaging.messaging().fcmToken
+        print("FCM token: \(token ?? "")")
+        defaults.set(token, forKey: VHkey.device_token)
+    }
+    
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        
+        print(deviceToken)
+        Messaging.messaging().apnsToken = deviceToken
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        
+        print(application.applicationState.rawValue)
+        
+        completionHandler(UIBackgroundFetchResult.newData)
+    }
+    
+    func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        completionHandler([.alert,.sound])
+        
+    }    
+    
+    // when logout remove pending notification
+    
+     - UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ["orderReminder"])
+ 
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -               
+  // MARK:-  send topic notification (one to many)
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
+    
+     func sendNotification(title:String,body:String){.  // call where you send notification
+        
+        let param = ["title":title,
+                     "body":body]
+        
+        let mainParam = ["to":"/topics/notify",
+                         "notification":param,
+                         "priority":"high"] as [String : Any]
+        
+        let header = ["Authorization":"key=\(API_Server_key)"]
+        
+        vipclass.apiPostNotification(ApiLink: "https://fcm.googleapis.com/fcm/send" , ApiParam: mainParam as [String : AnyObject], headers:header )
+        
+        
+    }
+    
+     
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -               
+  // MARK:- choose  and Croping image
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
+    
+    import DKImagePickerController    // choose image
+    import PEPhotoCropEditor         // crop image /  add - PEPhotoCropEditor.bundle file
+
+    // set class - PECropViewControllerDelegate,UIImagePickerControllerDelegate    
+    
+    @IBAction func Click_Image(_ sender: UIButton) {
+        
+        let pickerController = DKImagePickerController()
+        
+        pickerController.singleSelect = true
+        pickerController.sourceType = .both
+        pickerController.assetType = .allPhotos
+        pickerController.showsCancelButton = true
+        
+        pickerController.didSelectAssets = { (assets: [DKAsset]) in
+            print("didSelectAssets")
+            
+            if assets.count != 0 {
+                
+                assets[0].fetchOriginalImage(options: .none, completeBlock: { (image11 : UIImage?, dict : [AnyHashable : Any]? ) in
+                    
+                    DispatchQueue.main.async {
+                        
+                        let controller = PECropViewController()
+                        controller.delegate = self
+                        controller.image = image11
+                        controller.toolbarHidden = true
+                        controller.imageCropRect = CGRect(x: 0, y: (self.view.vHeight - self.view.vWidth)/2, width: self.view.vWidth, height: self.view.vWidth)
+                        controller.cropRect = CGRect(x: 0, y: (self.view.vHeight - self.view.vWidth)/2, width: self.view.vWidth, height: self.view.vWidth)
+                        let navigationController = UINavigationController(rootViewController: controller)
+                        self.present(navigationController, animated: true, completion: nil)
+                        
+                        hudProggess(self.view, Show: false)
+                    }                    
+                })                
+            }
+            else {                
+                hudProggess(self.view, Show: false)
+            }
+        }
+        
+        self.present(pickerController, animated: true) {}        
+    }
+    
+    
+    //MARK:- Cropviewcontroller delegate method
+    
+    func cropViewControllerDidCancel(_ controller: PECropViewController!) {
+        
+        controller.dismiss(animated: true, completion: nil)
+    }
+    
+    func cropViewController(_ controller: PECropViewController!, didFinishCroppingImage croppedImage: UIImage!) {
+       
+        Pro_img.image = croppedImage        
+        controller.dismiss(animated: true, completion: nil)
+    }
+     
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -               
+  // MARK:- set toolbar on textfiled with done and cancle option
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     
+     func addToolBar2(_ textField: UITextField)
+    {
+        let toolBar = UIToolbar(frame: CGRect(x: 0,y: 0,width: self.view.frame.size.width, height: 44))
+        toolBar.backgroundColor = UIColor.darkGray
+        toolBar.tintColor = UIColor.black
+        toolBar.sizeToFit()
+        toolBar.center = CGPoint(x: self.view.frame.width/2, y: 200)
+        let barbuttonDone : UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(self.click_DonePicker(_:)))
+        let barbuttonDone1 : UIBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(self.click_canclePicker(_:)))
+        toolBar.items = [barbuttonDone,barbuttonDone1]
+        barbuttonDone.tag = textField.tag
+        barbuttonDone1.tag = textField.tag
+        textField.inputAccessoryView = toolBar
+    }
+    
+    
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -               
+  // MARK:- set atributed btn with underline
+  // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+     
+ let attrs = [
+                    NSAttributedString.Key.font : UIFont(name: "Poppins-Italic", size: 16)!,
+                    NSAttributedString.Key.foregroundColor : UIColor(red: 47/255, green: 62/255, blue: 126/255 ,alpha: 1),
+                    NSAttributedString.Key.underlineStyle : 1] as [NSAttributedString.Key : Any]
+                
+                let attributedString = NSMutableAttributedString(string:"")
+                
+                
+                let btn_bill = UIButton(frame: CGRect(x: 10, y: lbl_date.frame.size.height + 50, width: bgview.frame.size.width - 10, height: 30))
+                let buttonTitleStr = NSMutableAttributedString(string:"View Bill", attributes:attrs)
+                attributedString.append(buttonTitleStr)
+                btn_bill.setAttributedTitle(attributedString, for: .normal)
+                bgview.addSubview(btn_bill)
+
+ // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -               
+ // MARK:- set PDFView from html file
+ // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    
+import WebKit
+
+// set class -  WKUIDelegate, WKNavigationDelegate 
+
+
+ override func viewDidLoad() {
+        super.viewDidLoad()        
+      
+        let webConfiguration = WKWebViewConfiguration()
+        web_View = WKWebView(frame: .zero, configuration: webConfiguration)
+        web_View.uiDelegate = self
+        web_View.navigationDelegate = self
+        self.view = web_View
+    }
+    
+     //MARK:- webview delegate
+    
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        
+        hudProggess(self.view, Show: false)
+    }
+    
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+        
+        hudProggess(self.view, Show: true)
+    }
+    
+    
+    func loadHTML() {   // call when data loaded
+
+        
+        let filePath = Bundle.main.path(forResource: "Invoice", ofType: "html")!
+        do {
+
+            var contents =  try String(contentsOfFile: filePath, encoding: .utf8)
+
+            let dateformat = DateFormatter()
+            dateformat.dateFormat = "yyyyMMdd"
+            let date = dateformat.date(from: aryTrans[0].invoice_date)  // arrTrans - stored loaded data
+            dateformat.dateFormat = "dd MMM,yyyy"
+            let datestr = dateformat.string(from: date!)
+            
+            
+            let subtotal =  String(format: "%.2f", aryTrans[0].subtotal)
+            let shipping =  String(format: "%.2f", aryTrans[0].shipping)
+            let total =  String(format: "%.2f",aryTrans[0].total)
+
+//            contents = contents.replacingOccurrences(of: "#Logo#", with: String(Bundle.main.path(forResource: "user_hotel", ofType: "png")!))
+            contents = contents.replacingOccurrences(of: "#Hotel_name#", with: aryTrans[0].h_name)
+            contents = contents.replacingOccurrences(of: "#Hotel_add#", with: aryTrans[0].h_add)
+            contents = contents.replacingOccurrences(of: "#Invoice_date#", with: datestr)
+            
+            contents = contents.replacingOccurrences(of: "#Sub_total#", with: String(subtotal))
+            contents = contents.replacingOccurrences(of: "#Shipping#", with: String(shipping))
+            contents = contents.replacingOccurrences(of: "#Total#", with: String(total))
+
+            var allItems = ""
+            
+            let pathToLastItemHTMLTemplate1 = Bundle.main.path(forResource: "SubInvoice", ofType: "html")
+            
+            for (i,obj) in self.aryTrans.enumerated() {
+                
+                var itemHTMLContent: String!               
+                   
+                 itemHTMLContent = try String(contentsOfFile: pathToLastItemHTMLTemplate1!)                   
+                
+                let weight =  String(format: "%.2f", obj.order_weight)
+                let rate =  String(format: "%.2f", obj.order_price)
+                let amount =  String(format: "%.2f", obj.order_value)
+                
+                itemHTMLContent = itemHTMLContent.replacingOccurrences(of: "#Sr.No#", with: "\(i + 1)")
+                itemHTMLContent = itemHTMLContent.replacingOccurrences(of: "#Desc#", with: obj.veg_name)
+                itemHTMLContent = itemHTMLContent.replacingOccurrences(of: "#Weight#", with: String(weight))
+                itemHTMLContent = itemHTMLContent.replacingOccurrences(of: "#Rate#", with: String(rate))
+                itemHTMLContent = itemHTMLContent.replacingOccurrences(of: "#Amount#", with: String(amount))
+              
+                
+                allItems += itemHTMLContent
+            }
+
+            contents = contents.replacingOccurrences(of: "#ITEMS#", with: allItems)
+            
+            
+            let url = URL(fileURLWithPath: filePath)
+            self.web_View.loadHTMLString(contents, baseURL: url)
+            self.HTMLcontents = contents
+            
+        } catch {
+            print ("File HTML error")
+        }
+
+    }
+    
+      
+    func exportHTMLContentToPDF(HTMLContent: String) {
+        
+           let printPageRenderer = CustomPrintPageRenderer()
+           
+           let printFormatter = UIMarkupTextPrintFormatter(markupText: HTMLContent)
+           printPageRenderer.addPrintFormatter(printFormatter, startingAtPageAt: 0)
+           
+           let pdfData = drawPDFUsingPrintPageRenderer(printPageRenderer: printPageRenderer)
+        
+        let datestr = Date().dateToString(format:"yyyyMMdd")
+        let timestr = Date().dateToString(format:"HHmmss")
+           
+           let name = "Invoice_\(datestr)_\(timestr).pdf"
+           let pdfFilename = name.getImagePath()
+           pdfData?.write(toFile: pdfFilename, atomically: true)
+           
+           print(pdfFilename)
+           
+           let url = URL(fileURLWithPath: pdfFilename)
+           let objectsToShare = [url]
+           
+           let activityVC = UIActivityViewController(activityItems: objectsToShare as [Any], applicationActivities: nil)
+           activityVC.setValue("Invoice_\(datestr)_\(timestr)", forKey: "Subject")
+           self.present(activityVC, animated: true, completion: nil)
+           
+       }
+       
+       
+       func drawPDFUsingPrintPageRenderer(printPageRenderer: UIPrintPageRenderer) -> NSData! {
+           let data = NSMutableData()
+           
+           UIGraphicsBeginPDFContextToData(data, CGRect.zero, nil)
+           for i in 0..<printPageRenderer.numberOfPages {
+               UIGraphicsBeginPDFPage()
+               printPageRenderer.drawPage(at: i, in: UIGraphicsGetPDFContextBounds())
+           }
+           
+           UIGraphicsEndPDFContext()
+           
+           return data
+       }
+    
+    @IBAction func Click_createPDF(_ sender: Any) {
+        
+        exportHTMLContentToPDF(HTMLContent: HTMLcontents)
+    }   
+   
+  
