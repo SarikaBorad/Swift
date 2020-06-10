@@ -1,0 +1,351 @@
+
+import UIKit
+
+  // - - - - - - - - - - - - - - - -
+ // MARK:- 📍 Extension - UIView 📌
+// - - - - - - - - - - - - - - - -
+
+extension UIView {
+    
+    var vHeight : CGFloat {
+        
+        get { return self.frame.size.height }
+        set { self.frame.size.height = newValue }
+    }
+    
+    var vWidth : CGFloat {
+        
+        get { return self.frame.size.width }
+        set { self.frame.size.width = newValue }
+    }
+    
+    var XPOINT : CGFloat {
+        
+        get { return self.frame.origin.x }
+        set { self.frame.origin.x = newValue }
+    }
+    
+    var YPOINT : CGFloat {
+        
+        get { return self.frame.origin.y }
+        set { self.frame.origin.y = newValue }
+    }
+    
+   //view end point
+    var YH : CGFloat {
+        
+        return self.frame.origin.y + self.frame.size.height
+    }
+    
+    var XW : CGFloat {
+        
+        return self.frame.origin.x + self.frame.size.width
+    }
+    
+    // hide & show
+    func hideV(){
+        
+        self.isHidden = true
+    }
+    
+    func showV(){
+        
+        self.isHidden = false
+    }
+    
+    var cornerRadius : CGFloat {
+        
+        get { return  self.layer.cornerRadius }
+        set {  self.layer.cornerRadius = newValue }
+    }
+    
+    func setGradientBackground() {
+        
+        let colorTop = UIColor.clear.cgColor
+        let colorBottom = UIColor.white.withAlphaComponent(1).cgColor
+
+        let gradientLayer = CAGradientLayer()
+        gradientLayer.colors = [colorTop, colorBottom]
+        gradientLayer.locations = [0.0,1.0]
+        gradientLayer.frame = self.bounds
+        
+        if self.layer.sublayers != nil {
+            
+             self.layer.replaceSublayer(self.layer.sublayers![0], with: gradientLayer)
+            
+        }else
+        {
+            self.layer.insertSublayer(gradientLayer, at: 0)
+        }
+      
+    }
+    
+    func setBorder(_ BW:CGFloat,color:UIColor) {
+
+        self.layer.borderColor = color.cgColor
+        self.layer.borderWidth = BW
+        self.clipsToBounds = true
+    }
+    
+    func CircleWith(Color BGcolor:UIColor) {
+        
+        self.layer.cornerRadius = self.vWidth/2
+        self.clipsToBounds = true
+        self.backgroundColor = BGcolor
+    }
+    // screenshot of view
+    var VHSnapshot : UIImage {
+        
+        UIGraphicsBeginImageContextWithOptions(bounds.size, false, UIScreen.main.scale)
+        drawHierarchy(in: self.bounds, afterScreenUpdates: true)
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return image!
+    }
+    
+    func moveSlider(At NewP:CGFloat){
+        
+        UIView.animate(withDuration: 0.2, delay: 0.1, options: .curveEaseOut, animations: {
+            self.frame.origin.x = NewP
+            
+        }, completion: nil)
+        
+    }
+    
+    func pastViewFrom(View V2:UIView){
+        
+        self.frame = V2.frame
+        self.backgroundColor = V2.backgroundColor
+        self.layer.cornerRadius = V2.layer.cornerRadius
+        self.clipsToBounds = V2.clipsToBounds
+        self.contentMode = V2.contentMode
+        
+    }
+    func addOneSideDashedBorder() {
+        
+        let shapeLayer = CAShapeLayer()
+        shapeLayer.strokeColor = #colorLiteral(red: 0.1843137255, green: 0.2431372549, blue: 0.4941176471, alpha: 1)
+        shapeLayer.lineWidth = 1
+       
+        shapeLayer.lineDashPattern = [5,5]
+
+        let path = CGMutablePath()
+        path.addLines(between: [CGPoint(x: 2, y: 0),
+                                CGPoint(x: 0, y: self.frame.height)])
+        shapeLayer.path = path
+        self.layer.addSublayer(shapeLayer)
+    }
+    
+    func setDashedBoder() {
+        
+        var width = CGFloat()
+        var x1 = CGFloat()
+        
+        if UIDevice().userInterfaceIdiom == .phone {
+            switch UIScreen.main.nativeBounds.width {
+                
+            case 1125,750,640 :
+                width = 335
+                x1 = 0
+                print("iPhone 6/6S/7/8/SE/11 pro")
+               
+                
+            default:
+                 width = 375
+                 x1 = 20
+                print("Nothing")
+            }
+        }
+        
+//                self.translatesAutoresizingMaskIntoConstraints = true
+//                let yourViewBorder = CAShapeLayer()
+//                yourViewBorder.strokeColor = #colorLiteral(red: 0.1843137255, green: 0.2431372549, blue: 0.4941176471, alpha: 1)
+//                yourViewBorder.lineDashPattern = [7, 4]
+//                yourViewBorder.frame = self.bounds
+//                yourViewBorder.fillColor = nil
+//                yourViewBorder.path = UIBezierPath(rect: self.bounds).cgPath
+//                self.layer.addSublayer(yourViewBorder)
+        
+        let shapeLayer:CAShapeLayer = CAShapeLayer()
+        let frameSize = self.bounds.size
+        print("*:",frameSize.height)
+        let shapeRect = CGRect(x: x1 , y: 0, width: width, height: frameSize.height)
+
+        shapeLayer.frame = shapeRect
+        shapeLayer.position = CGPoint(x: frameSize.width/2, y:frameSize.height/2)
+        shapeLayer.fillColor = UIColor.clear.cgColor
+        shapeLayer.strokeColor = #colorLiteral(red: 0.1843137255, green: 0.2431372549, blue: 0.4941176471, alpha: 1)
+        shapeLayer.lineWidth = 1
+        shapeLayer.lineDashPattern = [6,3]
+        shapeLayer.lineJoin = CAShapeLayerLineJoin.round
+        shapeLayer.path = UIBezierPath(roundedRect: shapeRect, cornerRadius: 0).cgPath
+        self.layer.addSublayer(shapeLayer)
+    }
+    
+    func setShado() {
+        
+        let layer = self.layer
+//      let shadowPath: UIBezierPath = UIBezierPath(rect: self.bounds)
+        layer.shadowColor = UIColor.darkGray.cgColor
+        layer.shadowOffset = CGSize(width: 0.0, height: 3.0)
+        layer.shadowOpacity = 0.35
+        layer.shadowRadius = 2
+     // layer.cornerRadius = 10.0
+     // layer.shadowPath = shadowPath.CGPath
+        
+        layer.masksToBounds = false
+    }
+    func setShadoCell() {
+            
+            let layer = self.layer
+            layer.shadowColor = UIColor.darkGray.cgColor
+            layer.shadowOffset = CGSize(width: 1.0, height: 2.0)
+            layer.shadowOpacity = 0.35
+            layer.shadowRadius = 2
+            layer.masksToBounds = false
+        }
+    func setShadotab() {
+        
+        let layer = self.layer
+        layer.shadowColor = UIColor.darkGray.cgColor
+        layer.shadowOffset = CGSize(width: 0.0, height: 0.0)
+        layer.shadowOpacity = 0.35
+        layer.shadowRadius = 3
+        layer.masksToBounds = false
+    }
+    
+    func setShadoWith(color:UIColor) {
+        
+        let layer = self.layer
+        layer.shadowColor = color.cgColor
+        layer.shadowOffset = CGSize(width: 0.0, height: 2.0)
+        layer.shadowOpacity = 0.6
+        layer.shadowRadius = 5.0
+        
+        layer.masksToBounds = false
+    }
+    
+    
+}
+
+extension CALayer {
+    
+    func addLineBorder(edge: UIRectEdge, color: UIColor, thickness: CGFloat) {
+
+           let border = CALayer()
+
+           switch edge {
+           case .top:
+               border.frame = CGRect(x: 0, y: 0, width: frame.width, height: thickness)
+           case .bottom:
+               border.frame = CGRect(x: 0, y: frame.height - thickness, width: frame.width, height: thickness)
+           case .left:
+               border.frame = CGRect(x: 0, y: 0, width: thickness, height: frame.height)
+           case .right:
+               border.frame = CGRect(x: frame.width - thickness, y: 0, width: thickness, height: frame.height)
+           default:
+               break
+           }
+
+           border.backgroundColor = color.cgColor
+
+           addSublayer(border)
+       }
+}
+
+  
+func addLineToView(view : UIView, color: UIColor, width: Double) {
+    
+    let lineView = UIView()
+    lineView.backgroundColor = color
+    lineView.translatesAutoresizingMaskIntoConstraints = false // This is important!
+    view.addSubview(lineView)
+    
+    let metrics = ["width" : NSNumber(value: width)]
+    let views = ["lineView" : lineView]
+    view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|[lineView]|", options:NSLayoutConstraint.FormatOptions(rawValue: 0), metrics:metrics, views:views))
+    view.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:[lineView(width)]|", options:NSLayoutConstraint.FormatOptions(rawValue: 0), metrics:metrics, views:views))
+    
+}
+
+extension UIViewController {
+    
+    func goBack() {
+        
+        _ = self.navigationController?.popViewController(animated: true)
+    }
+}
+
+extension CAGradientLayer {
+    
+    enum Point {
+        case topRight, topLeft
+        case bottomRight, bottomLeft
+        case custion(point: CGPoint)
+        
+        var point: CGPoint {
+            switch self {
+            case .topRight: return CGPoint(x: 1, y: 0)
+            case .topLeft: return CGPoint(x: 0, y: 0)
+            case .bottomRight: return CGPoint(x: 1, y: 1)
+            case .bottomLeft: return CGPoint(x: 0, y: 1)
+            case .custion(let point): return point
+            }
+        }
+    }
+    
+    convenience init(frame: CGRect, colors: [UIColor], startPoint: CGPoint, endPoint: CGPoint) {
+        
+        self.init()
+        self.frame = frame
+        self.colors = colors.map { $0.cgColor }
+        self.startPoint = startPoint
+        self.endPoint = endPoint
+    }
+    
+    convenience init(frame: CGRect, colors: [UIColor], startPoint: Point, endPoint: Point) {
+        self.init(frame: frame, colors: colors, startPoint: startPoint.point, endPoint: endPoint.point)
+    }
+    
+    func createGradientImage() -> UIImage? {
+        defer { UIGraphicsEndImageContext() }
+        UIGraphicsBeginImageContext(bounds.size)
+        guard let context = UIGraphicsGetCurrentContext() else { return nil }
+        render(in: context)
+        return UIGraphicsGetImageFromCurrentImageContext()
+    }
+}
+
+extension UINavigationBar {
+    
+    func setGradientBackground(colors: [UIColor], startPoint: CAGradientLayer.Point = .topLeft, endPoint: CAGradientLayer.Point = .bottomLeft) {
+        var updatedFrame = bounds
+        updatedFrame.size.height += self.frame.origin.y
+        let gradientLayer = CAGradientLayer(frame: updatedFrame, colors: colors, startPoint: startPoint, endPoint: endPoint)
+        setBackgroundImage(gradientLayer.createGradientImage(), for: UIBarMetrics.default)
+    }
+}
+
+
+//MARK:-   when use sidemenucontroller pod use below method for set sidemenu icon on page
+
+extension UIViewController {   /
+    
+    func setNavigationBarItem() {
+        self.addLeftBarButtonWithImage(UIImage(named: "side_menu")!). //left side
+//        self.addRightBarButtonWithImage(UIImage(named: "ic_notifications_black_24dp")!) // right side
+        self.navigationItem.leftBarButtonItem?.tintColor = .white
+        self.slideMenuController()?.removeLeftGestures()
+        self.slideMenuController()?.removeRightGestures()
+        self.slideMenuController()?.addLeftGestures()
+        self.slideMenuController()?.addRightGestures()
+    }
+    
+    func removeNavigationBarItem() {
+        self.navigationItem.leftBarButtonItem = nil
+        self.navigationItem.rightBarButtonItem = nil
+        self.slideMenuController()?.removeLeftGestures()
+        self.slideMenuController()?.removeRightGestures()
+    }
+}
