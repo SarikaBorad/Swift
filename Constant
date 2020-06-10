@@ -151,6 +151,78 @@ extension Date {
     }
 }
 
+func daysBetweenDates(startDate: Date, endDate: Date) -> Int
+{
+    let calendar = Calendar.current
+    let components = calendar.dateComponents([.day], from: startDate, to: endDate)
+    return components.day!
+}
+
+func GetDiffForm(_ dateString : String) -> (Int, String)
+{
+    let dateformate = DateFormatter()
+    dateformate.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+    dateformate.timeZone = TimeZone.current
+    
+    let date = Date()
+    let sdate = dateformate.string(from: date)
+    let todate = dateformate.date(from: sdate)
+   
+    let finaldate  = dateformate.date(from: dateString)!
+    
+//    print(finaldate)
+//    print(todate!)
+    
+    let diff = finaldate.off_Nub_unit_setFrom(todate!)
+    
+    return diff
+    
+}
+
+func GetDiffForm(_ dateMain : Date) -> (Int, String)
+{
+    let dateformate = DateFormatter()
+    dateformate.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+    dateformate.timeZone = TimeZone.current
+    
+    
+    let dateString = dateformate.string(from: dateMain)
+    let finaldate  = dateformate.date(from: dateString)!
+    
+    let date = Date()
+    let sdate = dateformate.string(from: date)
+    let todate = dateformate.date(from: sdate)
+    
+    
+    let diff = finaldate.off_Nub_unit_setFrom(todate!)
+    
+    return diff
+    
+}
+
+
+func convertDateFormaterS(_ date: String) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+    dateFormatter.timeZone = TimeZone(identifier: "UTC")
+    
+    guard let date = dateFormatter.date(from: date) else {
+        assert(false, "no date from string")
+        return ""
+    }
+    
+    dateFormatter.dateFormat = "MMM dd, yyyy HH:mm a"
+    dateFormatter.timeZone = TimeZone(identifier: "UTC")
+    let timeStamp = dateFormatter.string(from: date)
+    
+    return timeStamp
+}
+
+func getDoublevalue(str : CVarArg) -> String {
+    
+       return String(format: "%.2f",str)
+   }
+
 // MARK:- Convert Ary to String
 
 func convertAryToString(Ary : [String]) -> String {
@@ -206,6 +278,53 @@ func convertDateFromTime(timestamp : String) -> Date {
     
     return date
     
+}
+
+//MARK:- get Start and end date from string
+
+func getStartEnddate(date : String) -> (Date,Date) {
+    
+    let timestamp = date
+    var interval:Double = 0
+    
+    let parts = timestamp.components(separatedBy: ":")
+    for (index, part) in parts.reversed().enumerated() {
+        interval += (Double(part) ?? 0) * pow(Double(60), Double(index))
+    }
+    
+    let date = Date(timeIntervalSince1970: interval)
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "dd/MM/yyyy hh:mm a"
+    
+    
+    let s_day = dateFormatter.string(from: date.startOfDay as Date)
+    let e_day = dateFormatter.string(from: date.endOfDay!)
+    
+    let s_date = dateFormatter.date(from: s_day)
+    let e_date = dateFormatter.date(from: e_day)
+    
+    return(s_date!,e_date!)
+}
+
+
+//MARK:- get current timestamp 
+
+var Timestamp: String {
+    
+    let timesp = Date().timeIntervalSince1970 * 1000
+
+    let strNs = NSString(format: "%.f", timesp)
+    
+    return "\(strNs)"
+}
+
+
+//MARK:- get directory path
+
+func getDirectoryPath() -> String {
+    let paths = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)
+    let documentsDirectory = paths[0]
+    return documentsDirectory
 }
 
 
@@ -336,6 +455,25 @@ extension UITextField : UITextFieldDelegate {
         self.superview?.addSubview(setIVr)
 
     }
+    
+    func shadoToText(text:String) -> NSAttributedString {
+    
+    
+    let myShadow = NSShadow()
+    myShadow.shadowBlurRadius = 2
+    myShadow.shadowOffset = CGSize(width: 0, height: 2)
+    myShadow.shadowColor = UIColor(red: 193.0/255.0, green: 193.0/255.0, blue: 193.0/255.0, alpha: 1.0)
+    
+    // Create an attribute from the shadow
+    let myAttribute = [ NSAttributedString.Key.shadow: myShadow ]
+    
+    // Add the attribute to the string
+    let myAttrString = NSAttributedString(string: text, attributes: myAttribute)
+    
+    return myAttrString
+}
+
+
 }
 
   // - - - - - - - - - - - - - - - - - - - -
@@ -352,9 +490,8 @@ extension NSMutableData {
 }
 
  // - - - - - - - - - - - - - - - - - - - -
- // MARK:- 📍 to get Random String 📌
+ // MARK:- 📍 to get Random String and number 📌
 // - - - - - - - - - - - - - - - - - - - -
-
 
 func randomString(length: Int) -> String {
     
@@ -371,5 +508,226 @@ func randomString(length: Int) -> String {
     
     return randomString
 }
+
+var randomNumber : String {
+
+    let random = Int(arc4random_uniform(UInt32(123456789)))
+    
+    return "\(random)"
+}
+
+
+
+ // - - - - - - - - - - - - - - - - - - - -
+ // MARK:- 📍Validation functions 📌
+// - - - - - - - - - - - - - - - - - - - -
+
+
+// Email Validation Methods
+func isValidEmail(_ emailString:String,cc:UIViewController) -> Bool {
+    
+    let emailRegEx = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,4}"
+    let emailTest = NSPredicate(format:"SELF MATCHES %@", emailRegEx)
+    
+    let result = emailTest.evaluate(with: emailString)
+    if !result {
+    
+        showAlertWithMsg("Please enter valid Email", cc: cc)
+    }
+    
+    return result
+}
+
+// - - - - - - - - - - - - - - -
+
+// Show Alert Message
+func showAlertWithMsg(_ msg:String,cc:UIViewController) {
+    
+    let alert = UIAlertController(title: "", message: msg, preferredStyle: .alert)
+    let okaction = UIAlertAction(title: "Ok", style: .default, handler: nil)
+    alert.addAction(okaction)
+    cc.present(alert, animated: true, completion: nil)
+        //UIAlertView(title: "", message: msg, delegate: cc, cancelButtonTitle: "ok")
+    
+}
+
+// validation function
+
+func validationTextField(_ textFied:UITextField,msg:String,cc:UIViewController)-> Bool {
+
+    if textFied.text == "" {
+    
+        showAlertWithMsg(msg, cc: cc)
+        
+        return false
+    }
+    return true
+}
+
+func validationpassTextField(_ textFied:UITextField,msg:String,cc:UIViewController)-> Bool {
+
+    if textFied.text?.count < 8  {
+    
+        showAlertWithMsg(msg, cc: cc)
+        
+        return false
+    }
+    return true
+}
+
+//text Validation
+
+func isTextSame(text1:String, text2:String,cc:UIViewController)->Bool{
+
+    if text1 != text2 {
+    
+        showAlertWithMsg("Password not match", cc: cc)
+        return false
+    }
+    return true
+}
+
+
+
+// - - - - - - - - - - - - 
+// MARK:- MBProgressHUD
+// - - - - - - - - - - - - 
+
+
+func hudProggess(_ view:UIView,Show:Bool){
+
+    if Show {
+
+        let hud = MBProgressHUD.showAdded(to: view, animated: true)
+        hud.contentColor = UIColor.black
+        hud.label.text = "Loading"
+
+    }
+    else{
+
+        MBProgressHUD.hide(for: view, animated: true)
+    }
+}
+
+extension UITableView {
+
+    func animateTable() {
+        self.reloadData()
+        
+        let cells = self.visibleCells
+        let tableHeight: CGFloat = self.bounds.size.height
+        
+        for i in cells {
+            let cell: UITableViewCell = i as UITableViewCell
+            cell.transform = CGAffineTransform(translationX: 0, y: tableHeight)
+        }
+        
+        var index = 0
+        
+        for a in cells {
+            let cell: UITableViewCell = a as UITableViewCell
+            UIView.animate(withDuration: 1.5, delay: 0.05 * Double(index), usingSpringWithDamping: 0.8, initialSpringVelocity: 0, options: [], animations: {
+                cell.transform = CGAffineTransform(translationX: 0, y: 0);
+                }, completion: nil)
+            
+            index += 1
+        }
+    }
+}
+
+
+//MARK:-  return serach value from array
+
+extension Sequence {
+    
+    public func myFilter( includeElement: (Self.Iterator.Element) throws -> Bool) rethrows -> [Self.Iterator.Element] {
+        var array : [Self.Iterator.Element] = []
+        for element in self {
+            do {
+                if try includeElement (element) {
+                    array.append(element)
+                }
+            }
+        }
+        return array
+    }
+}
+
+ func  SearchArea(){
+        
+        if txt_search.text != "" {
+            
+            var filtered: NSArray = NSArray()
+            var filtered1: NSArray = NSArray()
+            let searchText = self.txt_search.text!
+            let data = NSMutableArray()
+            let data1 = NSMutableArray()
+            self.arrCity.removeAll()
+            hidden.removeAll() // for hide or show cells
+            var cityObj = City1()
+            var tempArea : [Area1] = [Area1]()
+            
+
+            
+            for city in tempCity
+            {
+                data.removeAllObjects()
+                
+                
+                for area in city.area {
+                    
+                    var name : String?
+                    
+                    if LangCode{
+                        
+                        name  = area.name_en
+                    }else
+                    {
+                        name    = area.name_ar
+                    }
+                    
+                    var fname = String()
+                    if name != nil
+                    {
+                        fname = name!
+                    }
+                    else
+                    {
+                        fname = "null"
+                    }
+                    data.add(fname)                    
+                }
+            
+                    var ii = 0
+                    tempArea.removeAll()
+                    filtered = data.myFilter(includeElement: { (text) -> Bool in
+                        
+                        let tmp: NSString = text as! NSString
+                        let range = tmp.range(of: searchText, options: NSString.CompareOptions.caseInsensitive)
+                        if(range.location != NSNotFound){
+                            tempArea.append(city.area[ii])
+                           
+                        }
+                        ii = ii + 1
+                        
+                        return range.location != NSNotFound
+                    }) as NSArray
+                    
+                    if tempArea.count != 0{
+                        
+                        cityObj = city
+                        cityObj.area = tempArea
+                        self.arrCity.append(cityObj)
+                        hidden.append(false)
+                        
+                    }             
+            }        
+          
+            self.tbl_area.reloadData()
+     
+        }        
+      }
+
+
 
 
